@@ -1,0 +1,5 @@
+name: wingspectrum-uvs-fixed
+version: "0.1.0"
+description: UVS visibility with correct VJP
+build_config:
+  target_platform: native

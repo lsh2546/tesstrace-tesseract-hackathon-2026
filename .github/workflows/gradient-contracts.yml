@@ -107,3 +107,53 @@ jobs:
           path: artifacts/
           if-no-files-found: error
           retention-days: 30
+
+  wingspectrum-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned Tesseract Core
+        run: pip install -e . "tesseract-core==1.11.0"
+      - name: Build scientific pipeline images
+        run: |
+          tesseract build wingspectrum_fixtures/optics
+          tesseract build wingspectrum_fixtures/uvs_faulty
+          tesseract build wingspectrum_fixtures/uvs_fixed
+          tesseract build wingspectrum_fixtures/vs
+          tesseract build wingspectrum_fixtures/human
+          tesseract build wingspectrum_fixtures/thermal
+      - name: Run fair faulty-versus-fixed optimization
+        run: python scripts/wingspectrum_container_comparison.py --output-dir artifacts/wingspectrum-comparison
+      - name: Record image SHAs, version, and workflow URL
+        env:
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          images = [
+              "wingspectrum-optics:latest", "wingspectrum-uvs-faulty:latest",
+              "wingspectrum-uvs-fixed:latest", "wingspectrum-vs:latest",
+              "wingspectrum-human:latest", "wingspectrum-thermal:latest",
+          ]
+          payload = {
+              "workflow_run_url": os.environ["RUN_URL"],
+              "images": {image: subprocess.check_output(
+                  ["docker", "image", "inspect", image, "--format", "{{.Id}}"], text=True
+              ).strip() for image in images},
+          }
+          with open("artifacts/wingspectrum-comparison/environment.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, indent=2, sort_keys=True); f.write("\n")
+          PY
+      - name: Preserve comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wingspectrum-container-comparison-${{ github.run_id }}
+          path: artifacts/wingspectrum-comparison/
+          if-no-files-found: error
+          retention-days: 30

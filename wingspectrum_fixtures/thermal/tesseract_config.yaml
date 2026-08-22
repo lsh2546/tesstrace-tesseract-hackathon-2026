@@ -1,0 +1,5 @@
+name: wingspectrum-thermal
+version: "0.1.0"
+description: Solar transmittance branch
+build_config:
+  target_platform: native

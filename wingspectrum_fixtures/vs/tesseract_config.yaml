@@ -1,0 +1,5 @@
+name: wingspectrum-vs
+version: "0.1.0"
+description: VS visibility branch
+build_config:
+  target_platform: native

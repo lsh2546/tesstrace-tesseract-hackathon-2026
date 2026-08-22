@@ -1,0 +1,5 @@
+name: wingspectrum-human
+version: "0.1.0"
+description: Human visible-reflectance and color-variation branch
+build_config:
+  target_platform: native

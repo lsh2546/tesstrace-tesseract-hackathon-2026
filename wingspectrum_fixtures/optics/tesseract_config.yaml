@@ -1,0 +1,5 @@
+name: wingspectrum-optics
+version: "0.1.0"
+description: Reduced-order energy-conserving spectral optics
+build_config:
+  target_platform: native

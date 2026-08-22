@@ -1,0 +1,5 @@
+name: wingspectrum-uvs-faulty
+version: "0.1.0"
+description: Identical UVS forward with wavelength-reversed VJP
+build_config:
+  target_platform: native
