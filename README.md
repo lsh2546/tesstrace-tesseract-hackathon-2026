@@ -18,11 +18,21 @@ Tesseract Core 1.11.0, invokes their `apply` and `vector_jacobian_product`
 endpoints, and preserves raw reports as an Actions artifact. The first completed
 container gate is recorded in workflow run `32573968781`.
 
+The repository also contains the first reduced-order WingSpectrum science model.
+It maps ten smooth coating-band controls to an energy-conserving reflectance and
+transmittance spectrum, evaluates UVS, VS, human-visible, and solar branches, and
+optimizes a robust worst-species objective. This is explicitly a spectral surrogate,
+not a fabricated multilayer or measured collision-rate claim. Its raw loss curve,
+branch metrics, designs, and spectra are emitted as JSON in CI.
+
 ## Validation
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m unittest discover -s tests -v
+
+# Minimal four-branch science optimization and raw JSON evidence.
+python scripts/run_wingspectrum_minimal.py --output reports/wingspectrum-minimal.json
 
 # Intentionally faulty graph: prints JSON and exits nonzero.
 python -m tesstrace.cli --json reports/faulty.json

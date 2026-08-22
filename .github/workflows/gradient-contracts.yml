@@ -15,6 +15,8 @@ jobs:
           python-version: "3.11"
       - run: pip install -e .
       - run: python -m unittest discover -s tests -v
+      - name: Run minimal WingSpectrum optimization
+        run: python scripts/run_wingspectrum_minimal.py --output reports/wingspectrum-minimal.json
       - name: Verify a faulty contract returns nonzero
         shell: bash
         run: |
@@ -24,6 +26,13 @@ jobs:
           fi
       - name: Verify the corrected graph passes
         run: tesstrace --fixed --json reports/fixed.json
+      - name: Preserve minimal scientific-model evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wingspectrum-minimal-${{ github.run_id }}
+          path: reports/wingspectrum-minimal.json
+          if-no-files-found: error
+          retention-days: 30
 
   tesseract-containers:
     runs-on: ubuntu-latest
