@@ -65,7 +65,7 @@ def objective_and_gradient(design, clients, uvs_key):
         clients["human"], spectrum, np.array([30.0*human[0], 1.5])
     )
     spectrum_cotangent += vjp(clients["thermal"], spectrum, np.array([0.22]))
-    gradient = vjp(clients["optics"], design, spectrum_cotangent)
+    gradient = vjp(clients["optics"], design, spectrum_cotangent).copy()
     gradient += 0.006 * design / len(design)
     metrics = {
         "loss": float(loss), "uvs_visibility": uvs, "vs_visibility": vs,
