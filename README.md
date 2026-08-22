@@ -3,7 +3,8 @@
 DAG-aware gradient fault localization for composed Tesseracts.
 
 > **Validation status:** NumPy contract-fixture algorithm validation completed;
-> container validation pending.
+> GitHub Actions container validation completed with Tesseract Core 1.11.0.
+> Evidence: [workflow run 32573968781](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32573968781).
 
 This repository currently contains the first technical validation only: a branched
 WingSpectrum-shaped DAG with one intentionally incorrect UVS-vision VJP. TessTrace
@@ -11,11 +12,11 @@ checks local VJP contracts with central directional finite differences, preserve
 healthy sibling branches, and marks the shared upstream fan-out as partially
 contaminated.
 
-The GitHub Actions workflow contains a separate, pending container gate. It builds
+The GitHub Actions workflow contains a separate container gate. It builds
 Optics, faulty/fixed UVS, VS, Human, and Thermal as real Tesseract images using
 Tesseract Core 1.11.0, invokes their `apply` and `vector_jacobian_product`
-endpoints, and preserves raw reports as an Actions artifact. This README must not
-describe that gate as completed until a successful workflow run URL is recorded.
+endpoints, and preserves raw reports as an Actions artifact. The first completed
+container gate is recorded in workflow run `32573968781`.
 
 ## Validation
 
