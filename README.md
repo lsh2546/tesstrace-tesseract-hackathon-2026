@@ -1,87 +1,117 @@
 # TessTrace
 
-DAG-aware gradient fault localization for composed Tesseracts.
+![TessTrace localizes a silent UVS VJP bug while preserving healthy sibling branches](docs/hero.svg)
 
-> **Validation status:** NumPy contract-fixture algorithm validation completed;
-> GitHub Actions container validation completed with Tesseract Core 1.11.0.
-> Evidence: [workflow run 32573968781](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32573968781).
-> The containerized WingSpectrum faulty-versus-fixed comparison is completed in
-> [workflow run 32576243257](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257).
+**TessTrace localizes the faulty VJP boundary in a composed Tesseract DAG, without falsely contaminating healthy sibling branches.**
 
-This repository currently contains the first technical validation only: a branched
-WingSpectrum-shaped DAG with one intentionally incorrect UVS-vision VJP. TessTrace
-checks local VJP contracts with central directional finite differences, preserves
-healthy sibling branches, and marks the shared upstream fan-out as partially
-contaminated.
+> Silent VJP bug found at **UVS Vision**. Fixed design: **UVS +5.1%**, **VS +7.5%**, with a better common forward-evaluated loss.
 
-The GitHub Actions workflow contains a separate container gate. It builds
-Optics, faulty/fixed UVS, VS, Human, and Thermal as real Tesseract images using
-Tesseract Core 1.11.0, invokes their `apply` and `vector_jacobian_product`
-endpoints, and preserves raw reports as an Actions artifact. The first completed
-container gate is recorded in workflow run `32573968781`.
+| Evidence | Faulty | Fixed |
+|---|---:|---:|
+| TessTrace UVS status | `FAIL` | `PASS` |
+| VS / Human / Thermal | `PASS` | `PASS` |
+| Optics status | `PARTIALLY_CONTAMINATED` | `PASS` |
+| Exit code | `1` | `0` |
+| UVS visibility | 0.5870 | **0.6169** |
+| VS visibility | 0.2725 | **0.2930** |
+| Common forward loss | -0.5750 | **-0.5876** |
 
-The repository also contains the first reduced-order WingSpectrum science model.
-It maps ten smooth coating-band controls to an energy-conserving reflectance and
-transmittance spectrum, evaluates UVS, VS, human-visible, and solar branches, and
-optimizes a robust worst-species objective. This is explicitly a spectral surrogate,
-not a fabricated multilayer or measured collision-rate claim. Its raw loss curve,
-branch metrics, designs, and spectra are emitted as JSON in CI.
+[Open the evidence UI](ui/index.html) · [Verified GitHub Actions run](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257) · [Four-page technical note](docs/technical-note.md)
 
-## Faulty-versus-fixed scientific comparison
+## Reproduce in 60 seconds
 
-The comparison holds the forward model, initial design, Adam settings, 180
-iterations, seed, and predeclared gradient-contract tolerance fixed. The only
-difference is that the faulty UVS image reverses the wavelength-axis cotangent in
-its VJP. Both variants use real Tesseract Core 1.11.0 `apply` and
-`vector_jacobian_product` endpoints.
+```bash
+pip install -e .
 
-At iteration 180, correcting that VJP improved model-based UVS visibility from
-`0.5870` to `0.6169`, VS visibility from `0.2725` to `0.2930`, and the common
-forward-evaluated objective from `-0.5750` to `-0.5876`. Human-visible
-reflectance remained within the fixed `0.20` bound (`0.1388` faulty; `0.1494`
-fixed). TessTrace labels only UVS `FAIL`, preserves VS/Human/Thermal as `PASS`,
-and labels Optics `PARTIALLY_CONTAMINATED`; the corrected graph is entirely
-`PASS`. The Actions artifact includes settings, full histories, spectra,
-directional checks, endpoint evidence, image SHAs, and the workflow URL.
+# Deliberately faulty DAG: UVS FAIL, healthy siblings PASS, exit code 1.
+tesstrace --json reports/faulty.json || test $? -eq 1
 
-## Validation
+# Corrected DAG: every node PASS, exit code 0.
+tesstrace --fixed --json reports/fixed.json
 
-```powershell
-$env:PYTHONPATH = "src"
+# Run the complete local contract and evidence-integrity tests.
 python -m unittest discover -s tests -v
+```
 
-# Minimal four-branch science optimization and raw JSON evidence.
-python scripts/run_wingspectrum_minimal.py --output reports/wingspectrum-minimal.json
+The real-container comparison is the `wingspectrum-comparison` job in the verified Actions run. It builds six Tesseract Core 1.11.0 images, calls `apply` and `vector_jacobian_product`, runs identical 180-step faulty/fixed optimizations, and uploads raw JSON evidence.
 
-# Intentionally faulty graph: prints JSON and exits nonzero.
-python -m tesstrace.cli --json reports/faulty.json
+## Why TessTrace
 
-# Corrected graph: all contracts pass and the process exits zero.
-python -m tesstrace.cli --fixed --json reports/fixed.json
+A wrong VJP can satisfy every shape check and allow an optimizer to converge. A final loss curve only shows that something went wrong; a per-solver benchmark does not identify how the error propagates through a composed DAG.
+
+**TessTrace does not merely report a gradient mismatch; it localizes the faulty VJP boundary while preserving healthy sibling branches in a composed Tesseract DAG.**
+
+At each tested boundary, TessTrace compares the supplied VJP against a central directional finite difference:
+
+```text
+analytic:  <VJP(x, c), d>
+reference: <c, (f(x + eps*d) - f(x - eps*d)) / (2*eps)>
+```
+
+It then traces failed cotangents upstream. In a fan-out, a shared parent receiving both healthy and failed branch cotangents becomes `PARTIALLY_CONTAMINATED`; healthy siblings remain `PASS`.
+
+```text
+                         UVS Vision       FAIL
+                       /                   |
+design -> Optics -----+---- VS Vision     PASS
+          PARTIALLY   +---- Human Vision  PASS
+          CONTAMINATED+---- Solar/Thermal PASS
+```
+
+### Frozen status semantics
+
+- `PASS`: local gradient contract passed.
+- `FAIL`: local node or edge VJP error directly confirmed.
+- `CONTAMINATED`: an upstream path received a failed cotangent.
+- `PARTIALLY_CONTAMINATED`: healthy and failed branch cotangents meet upstream.
+- `UNTESTED`: non-smoothness, instability, or execution failure prevented a verdict.
+
+## WingSpectrum demonstration
+
+WingSpectrum is a reduced-order, differentiable spectral glazing surrogate:
+
+```text
+10 coating-band controls -> Optics -> UVS / VS / Human / Solar branches -> robust loss
+```
+
+The controlled experiment holds the forward calculation, initial design, Adam optimizer, learning rate `0.16`, 180 iterations, seed `20260822`, and tolerance (`rtol=1e-4`, `atol=1e-7`, `epsilon=1e-6`) fixed. The only difference is that the faulty UVS image reverses the wavelength-axis cotangent in its VJP.
+
+The correction improves model-based UVS visibility by 5.1% and VS visibility by 7.5%. Human-visible reflectance remains below the frozen 0.20 bound in both runs. The artifact preserves settings, complete histories, spectra, directional errors, DAG states, endpoint evidence, image SHAs, and the workflow URL.
+
+## Repository map
+
+```text
+src/tesstrace/                 fault localization and status propagation
+src/wingspectrum/              frozen reduced-order science model
+fixtures/                      minimal contract Tesseracts
+wingspectrum_fixtures/         six scientific comparison Tesseracts
+scripts/container_validation.py
+scripts/wingspectrum_container_comparison.py
+ui/                            responsive evidence UI
+docs/technical-note.md         submission-oriented technical description
 ```
 
 ## Evidence UI
 
-The static, responsive evidence UI is generated from the preserved comparison
-JSON and requires no backend:
-
-```powershell
+```bash
 python -m http.server 8765 --directory ui
-# Open http://127.0.0.1:8765/
+# open http://127.0.0.1:8765/
 ```
 
-It leads with the localized UVS failure, preserves the healthy sibling states,
-and provides interactive outcome, spectrum, and loss-curve comparisons. Rebuild
-its embedded evidence only from a downloaded Actions artifact:
+Rebuild the UI evidence only from a downloaded Actions artifact:
 
-```powershell
+```bash
 python scripts/build_ui_data.py <artifact-directory> ui/data.js
 ```
 
-Status semantics are frozen as follows:
+## Scope and limitations
 
-- `PASS`: the local gradient contract passed.
-- `FAIL`: a local node or edge VJP error was directly confirmed.
-- `CONTAMINATED`: an upstream path received a failed cotangent.
-- `PARTIALLY_CONTAMINATED`: healthy and failed branch cotangents meet upstream.
-- `UNTESTED`: non-smoothness, numerical instability, or execution failure prevented a verdict.
+WingSpectrum demonstrates differentiable multi-objective spectral design and gradient-error consequences. It does **not** claim measured bird-collision reduction, a product-ready multilayer coating, fabrication feasibility, or improved solar/thermal performance. UVS and VS values are model-based spectral visibility proxies. TessTrace's directional checks are numerical tests and can return `UNTESTED` around non-smooth or numerically unstable points.
+
+## Verified evidence
+
+- Tesseract Core: `1.11.0`
+- Scientific images: Optics, faulty UVS, fixed UVS, VS, Human, Thermal
+- Endpoints: real `apply` and `vector_jacobian_product`
+- Artifact: `wingspectrum-container-comparison-32576243257`
+- Successful run: [32576243257](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257)
