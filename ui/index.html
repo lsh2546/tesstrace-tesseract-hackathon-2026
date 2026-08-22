@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TessTrace scientific gradient fault localization evidence">
+  <title>TessTrace — Silent gradient bugs, made visible</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="refinements.css">
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="TessTrace home"><span class="brand-mark">T</span>TessTrace</a>
+      <div class="evidence-line"><span class="live-dot"></span> Reproduced on Tesseract <span id="version"></span></div>
+      <a class="run-link" id="run-link" target="_blank" rel="noreferrer">View verified run ↗</a>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="eyebrow">DAG-aware gradient fault localization</div>
+      <h1>Silent VJP bug found at <span>UVS Vision</span></h1>
+      <p class="hero-copy">The pipeline still ran. The optimizer still converged. The design was still wrong.</p>
+      <div class="hero-metrics" aria-label="Fixed design improvements">
+        <div><span>Fixed design</span><strong>UVS +5.1%</strong></div>
+        <div><span>Sibling benefit</span><strong>VS +7.5%</strong></div>
+        <div><span>Objective</span><strong>Loss −2.2%</strong></div>
+      </div>
+    </section>
+
+    <section class="dag-section" aria-labelledby="dag-title">
+      <div class="section-heading"><div><span>01 / Localization</span><h2 id="dag-title">One broken branch. Healthy siblings preserved.</h2></div><p>Local directional checks isolate the first invalid gradient contract, then trace only its upstream cotangent path.</p></div>
+      <div class="dag-shell">
+        <svg class="dag-lines" viewBox="0 0 1000 290" preserveAspectRatio="none" aria-hidden="true">
+          <path class="line-partial" d="M310 145 C400 145 400 48 500 48"/>
+          <path class="line-pass" d="M310 145 C400 145 400 113 500 113"/>
+          <path class="line-pass" d="M310 145 C400 145 400 178 500 178"/>
+          <path class="line-pass" d="M310 145 C400 145 400 243 500 243"/>
+        </svg>
+        <div class="node optics"><span class="node-type">Tesseract</span><strong>Optics</strong><em>PARTIALLY<br>CONTAMINATED</em></div>
+        <div class="branch-stack">
+          <div class="node fail"><span>UVS Vision</span><strong>FAIL</strong><small>relative error 0.710</small></div>
+          <div class="node pass"><span>VS Vision</span><strong>PASS</strong><small>healthy sibling</small></div>
+          <div class="node pass"><span>Human Vision</span><strong>PASS</strong><small>healthy sibling</small></div>
+          <div class="node pass"><span>Solar / Thermal</span><strong>PASS</strong><small>healthy sibling</small></div>
+        </div>
+        <div class="bug-note"><b>Silent defect</b><span>UVS wavelength-axis cotangent reversed</span></div>
+      </div>
+    </section>
+
+    <section class="comparison" aria-labelledby="comparison-title">
+      <div class="section-heading"><div><span>02 / Scientific impact</span><h2 id="comparison-title">The bug changed the optimized design.</h2></div><div class="toggle" role="group" aria-label="Chart view"><button class="active" data-view="metrics">Outcome</button><button data-view="spectrum">Spectrum</button><button data-view="loss">Loss curve</button></div></div>
+      <div id="chart-area" class="chart-area" aria-live="polite"></div>
+      <div class="constraint-note"><span class="check">✓</span><div><b>Human-visible reflectance constraint preserved</b><small>Faulty 0.1388 · Fixed 0.1494 · Bound &lt; 0.20</small></div></div>
+    </section>
+
+    <section class="vision" aria-labelledby="vision-title">
+      <div class="section-heading"><div><span>03 / Four observers</span><h2 id="vision-title">Same glass. Different spectral worlds.</h2></div><p>Model-based detectability only. No measured collision-rate claim.</p></div>
+      <div class="vision-grid">
+        <article class="vision-panel human-view"><div class="panel-label">Human visible</div><div class="glass-scene"><i></i><i></i><i></i></div><b>Low visible distraction</b><span>Reflectance remains under 0.20</span></article>
+        <article class="vision-panel uvs-view"><div class="panel-label">UVS bird vision</div><div class="glass-scene"><i></i><i></i><i></i></div><b>UV pattern amplified</b><span>Fixed visibility 0.6169</span></article>
+        <article class="vision-panel vs-view"><div class="panel-label">VS bird vision</div><div class="glass-scene"><i></i><i></i><i></i></div><b>Visible contrast retained</b><span>Fixed visibility 0.2930</span></article>
+      </div>
+    </section>
+
+    <footer><div><strong>TessTrace</strong><span>DAG-aware gradient fault localization for composed Tesseracts</span></div><div class="proof"><span>Forward identical</span><span>Seed fixed</span><span>6 image SHAs recorded</span><span>Raw JSON preserved</span></div></footer>
+  </main>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

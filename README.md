@@ -60,6 +60,24 @@ python -m tesstrace.cli --json reports/faulty.json
 python -m tesstrace.cli --fixed --json reports/fixed.json
 ```
 
+## Evidence UI
+
+The static, responsive evidence UI is generated from the preserved comparison
+JSON and requires no backend:
+
+```powershell
+python -m http.server 8765 --directory ui
+# Open http://127.0.0.1:8765/
+```
+
+It leads with the localized UVS failure, preserves the healthy sibling states,
+and provides interactive outcome, spectrum, and loss-curve comparisons. Rebuild
+its embedded evidence only from a downloaded Actions artifact:
+
+```powershell
+python scripts/build_ui_data.py <artifact-directory> ui/data.js
+```
+
 Status semantics are frozen as follows:
 
 - `PASS`: the local gradient contract passed.
