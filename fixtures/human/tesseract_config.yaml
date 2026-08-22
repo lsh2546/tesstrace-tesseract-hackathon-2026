@@ -1,0 +1,6 @@
+name: tesstrace-human
+version: "0.1.0"
+description: TessTrace human vision contract fixture
+build_config:
+  target_platform: native
+

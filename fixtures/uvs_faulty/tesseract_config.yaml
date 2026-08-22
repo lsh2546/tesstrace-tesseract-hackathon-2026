@@ -1,0 +1,6 @@
+name: tesstrace-uvs-faulty
+version: "0.1.0"
+description: TessTrace intentionally faulty UVS vision contract fixture
+build_config:
+  target_platform: native
+

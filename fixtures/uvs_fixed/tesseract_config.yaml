@@ -1,0 +1,6 @@
+name: tesstrace-uvs-fixed
+version: "0.1.0"
+description: TessTrace corrected UVS vision contract fixture
+build_config:
+  target_platform: native
+

@@ -1,0 +1,6 @@
+name: tesstrace-thermal
+version: "0.1.0"
+description: TessTrace solar thermal contract fixture
+build_config:
+  target_platform: native
+

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tesstrace"
+version = "0.1.0"
+description = "DAG-aware gradient fault localization for composed Tesseracts"
+requires-python = ">=3.11"
+dependencies = ["numpy>=2.0"]
+
+[project.scripts]
+tesstrace = "tesstrace.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

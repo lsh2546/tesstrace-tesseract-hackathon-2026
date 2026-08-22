@@ -1,0 +1,6 @@
+name: tesstrace-optics
+version: "0.1.0"
+description: TessTrace optics contract fixture
+build_config:
+  target_platform: native
+

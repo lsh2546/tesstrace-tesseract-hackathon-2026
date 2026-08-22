@@ -1,0 +1,100 @@
+name: gradient-contracts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  numpy-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - run: python -m unittest discover -s tests -v
+      - name: Verify a faulty contract returns nonzero
+        shell: bash
+        run: |
+          if tesstrace --json reports/faulty.json; then
+            echo "Expected the intentionally faulty graph to fail" >&2
+            exit 1
+          fi
+      - name: Verify the corrected graph passes
+        run: tesstrace --fixed --json reports/fixed.json
+
+  tesseract-containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned Tesseract Core
+        run: pip install -e . "tesseract-core==1.11.0"
+      - name: Record Tesseract version
+        run: |
+          mkdir -p artifacts
+          python -c "import tesseract_core; print(tesseract_core.__version__)" | tee artifacts/tesseract-version.txt
+      - name: Build real Tesseract images
+        run: |
+          tesseract build fixtures/optics
+          tesseract build fixtures/uvs_faulty
+          tesseract build fixtures/uvs_fixed
+          tesseract build fixtures/vs
+          tesseract build fixtures/human
+          tesseract build fixtures/thermal
+      - name: Record Docker image IDs and workflow URL
+        env:
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          images = [
+              "tesstrace-optics:latest",
+              "tesstrace-uvs-faulty:latest",
+              "tesstrace-uvs-fixed:latest",
+              "tesstrace-vs:latest",
+              "tesstrace-human:latest",
+              "tesstrace-thermal:latest",
+          ]
+          evidence = {
+              "workflow_run_url": os.environ["RUN_URL"],
+              "images": {
+                  image: subprocess.check_output(
+                      ["docker", "image", "inspect", image, "--format", "{{.Id}}"],
+                      text=True,
+                  ).strip()
+                  for image in images
+              },
+          }
+          with open("artifacts/environment.json", "w", encoding="utf-8") as handle:
+              json.dump(evidence, handle, indent=2, sort_keys=True)
+              handle.write("\n")
+          PY
+      - name: Run faulty and corrected container fixtures
+        shell: bash
+        run: |
+          set +e
+          python scripts/container_validation.py --variant faulty --report artifacts/faulty-container.json
+          faulty_exit=$?
+          python scripts/container_validation.py --variant fixed --report artifacts/fixed-container.json
+          fixed_exit=$?
+          set -e
+          printf '{"faulty":%d,"fixed":%d}\n' "$faulty_exit" "$fixed_exit" | tee artifacts/exit-codes.json
+          test "$faulty_exit" -eq 1
+          test "$fixed_exit" -eq 0
+      - name: Assert DAG localization and endpoint evidence
+        run: python scripts/assert_container_reports.py artifacts/faulty-container.json artifacts/fixed-container.json
+      - name: Preserve raw validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tesseract-container-gradient-contracts-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,6 @@
+name: tesstrace-vs
+version: "0.1.0"
+description: TessTrace VS vision contract fixture
+build_config:
+  target_platform: native
+
