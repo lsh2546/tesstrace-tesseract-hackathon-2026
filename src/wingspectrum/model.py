@@ -10,6 +10,7 @@ BASIS_CENTERS = np.array([330, 370, 410, 460, 520, 590, 680, 780, 900, 1020])
 BASIS_WIDTHS = np.array([28, 30, 34, 42, 50, 60, 70, 85, 95, 105])
 BASE_REFLECTANCE = 0.04
 FIXED_ABSORPTANCE = 0.06
+SPECIES_SUM_WEIGHT = 0.5
 
 
 def _normalized_gaussian(center: float, width: float) -> np.ndarray:
@@ -96,6 +97,7 @@ def loss_and_gradient(design: np.ndarray) -> tuple[float, np.ndarray, dict[str, 
 
     loss = (
         -2.4 * smooth_min
+        - SPECIES_SUM_WEIGHT * (uvs + vs)
         + 15.0 * human_mean**2
         + 1.5 * human_variation
         + 0.22 * solar_t
@@ -103,6 +105,7 @@ def loss_and_gradient(design: np.ndarray) -> tuple[float, np.ndarray, dict[str, 
     )
 
     dloss_dr = -2.4 * (dmin_duvs * UVS_WEIGHT + dmin_dvs * VS_WEIGHT)
+    dloss_dr -= SPECIES_SUM_WEIGHT * (UVS_WEIGHT + VS_WEIGHT)
     dloss_dr += 30.0 * human_mean * HUMAN_WEIGHT
     dloss_dr += 3.0 * HUMAN_WEIGHT * (delta_r - human_mean)
     dloss_dr -= 0.22 * SOLAR_WEIGHT

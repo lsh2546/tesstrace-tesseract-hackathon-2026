@@ -31,6 +31,7 @@ SETTINGS = {
     "contract_epsilon": 1e-6,
     "contract_rtol": 1e-4,
     "contract_atol": 1e-7,
+    "species_sum_weight": 0.5,
 }
 
 
@@ -57,10 +58,15 @@ def objective_and_gradient(design, clients, uvs_key):
     smooth_min = -temperature * np.log(e_u + e_v)
     du, dv = e_u / (e_u + e_v), e_v / (e_u + e_v)
     regularization = float(np.mean(design**2))
-    loss = (-2.4*smooth_min + 15.0*human[0]**2 + 1.5*human[1]
+    loss = (-2.4*smooth_min - SETTINGS["species_sum_weight"]*(uvs+vs)
+            + 15.0*human[0]**2 + 1.5*human[1]
             + 0.22*solar + 0.003*regularization)
-    spectrum_cotangent = vjp(clients[uvs_key], spectrum, np.array([-2.4*du])).copy()
-    spectrum_cotangent += vjp(clients["vs"], spectrum, np.array([-2.4*dv]))
+    spectrum_cotangent = vjp(clients[uvs_key], spectrum, np.array([
+        -2.4*du-SETTINGS["species_sum_weight"]
+    ])).copy()
+    spectrum_cotangent += vjp(clients["vs"], spectrum, np.array([
+        -2.4*dv-SETTINGS["species_sum_weight"]
+    ]))
     spectrum_cotangent += vjp(
         clients["human"], spectrum, np.array([30.0*human[0], 1.5])
     )
@@ -107,8 +113,8 @@ def contract_report(clients, uvs_key):
     temp = 0.035; eu, ev = np.exp(-uvs/temp), np.exp(-vs/temp)
     fixtures = {
         "optics": (design, np.linspace(-0.2, 0.3, 162), np.linspace(0.4, -0.3, 10)),
-        "uvs": (spectrum, np.array([-2.4*eu/(eu+ev)]), np.linspace(0.3, -0.2, 162)),
-        "vs": (spectrum, np.array([-2.4*ev/(eu+ev)]), np.linspace(-0.1, 0.25, 162)),
+        "uvs": (spectrum, np.array([-2.4*eu/(eu+ev)-SETTINGS["species_sum_weight"]]), np.linspace(0.3, -0.2, 162)),
+        "vs": (spectrum, np.array([-2.4*ev/(eu+ev)-SETTINGS["species_sum_weight"]]), np.linspace(-0.1, 0.25, 162)),
         "human": (spectrum, np.array([30*metrics["human_reflectance"], 1.5]), np.linspace(0.2, -0.15, 162)),
         "thermal": (spectrum, np.array([0.22]), np.linspace(-0.25, 0.1, 162)),
     }
@@ -151,6 +157,7 @@ def main():
     passed = (forward_equal and faulty_exit == 1 and fixed_exit == 0
               and faulty["contracts"]["nodes"] == expected_faulty
               and fixed["contracts"]["nodes"] == expected_fixed
+              and fixed["history"][-1]["loss"] < faulty["history"][-1]["loss"]
               and fixed["history"][-1]["uvs_visibility"] > faulty["history"][-1]["uvs_visibility"]
               and fixed["history"][-1]["human_reflectance"] < 0.20)
     return 0 if passed else 1
