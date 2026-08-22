@@ -5,6 +5,8 @@ DAG-aware gradient fault localization for composed Tesseracts.
 > **Validation status:** NumPy contract-fixture algorithm validation completed;
 > GitHub Actions container validation completed with Tesseract Core 1.11.0.
 > Evidence: [workflow run 32573968781](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32573968781).
+> The containerized WingSpectrum faulty-versus-fixed comparison is completed in
+> [workflow run 32576243257](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257).
 
 This repository currently contains the first technical validation only: a branched
 WingSpectrum-shaped DAG with one intentionally incorrect UVS-vision VJP. TessTrace
@@ -24,6 +26,23 @@ transmittance spectrum, evaluates UVS, VS, human-visible, and solar branches, an
 optimizes a robust worst-species objective. This is explicitly a spectral surrogate,
 not a fabricated multilayer or measured collision-rate claim. Its raw loss curve,
 branch metrics, designs, and spectra are emitted as JSON in CI.
+
+## Faulty-versus-fixed scientific comparison
+
+The comparison holds the forward model, initial design, Adam settings, 180
+iterations, seed, and predeclared gradient-contract tolerance fixed. The only
+difference is that the faulty UVS image reverses the wavelength-axis cotangent in
+its VJP. Both variants use real Tesseract Core 1.11.0 `apply` and
+`vector_jacobian_product` endpoints.
+
+At iteration 180, correcting that VJP improved model-based UVS visibility from
+`0.5870` to `0.6169`, VS visibility from `0.2725` to `0.2930`, and the common
+forward-evaluated objective from `-0.5750` to `-0.5876`. Human-visible
+reflectance remained within the fixed `0.20` bound (`0.1388` faulty; `0.1494`
+fixed). TessTrace labels only UVS `FAIL`, preserves VS/Human/Thermal as `PASS`,
+and labels Optics `PARTIALLY_CONTAMINATED`; the corrected graph is entirely
+`PASS`. The Actions artifact includes settings, full histories, spectra,
+directional checks, endpoint evidence, image SHAs, and the workflow URL.
 
 ## Validation
 
