@@ -59,7 +59,7 @@ def objective_and_gradient(design, clients, uvs_key):
     regularization = float(np.mean(design**2))
     loss = (-2.4*smooth_min + 15.0*human[0]**2 + 1.5*human[1]
             + 0.22*solar + 0.003*regularization)
-    spectrum_cotangent = vjp(clients[uvs_key], spectrum, np.array([-2.4*du]))
+    spectrum_cotangent = vjp(clients[uvs_key], spectrum, np.array([-2.4*du])).copy()
     spectrum_cotangent += vjp(clients["vs"], spectrum, np.array([-2.4*dv]))
     spectrum_cotangent += vjp(
         clients["human"], spectrum, np.array([30.0*human[0], 1.5])
