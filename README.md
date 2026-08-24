@@ -16,7 +16,7 @@
 | VS visibility | 0.2725 | **0.2930** |
 | Common forward loss | -0.5750 | **-0.5876** |
 
-[Open the evidence UI](ui/index.html) · [Verified GitHub Actions run](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257) · [Four-page technical note](docs/technical-note.md)
+[Open the live evidence UI](https://lsh2546.github.io/tesstrace-tesseract-hackathon-2026/) · [Verified GitHub Actions run](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257) · [Four-page technical note](docs/tesstrace-technical-note.pdf) · [Apache-2.0 license](LICENSE)
 
 ## Reproduce in 60 seconds
 
@@ -115,3 +115,5 @@ WingSpectrum demonstrates differentiable multi-objective spectral design and gra
 - Endpoints: real `apply` and `vector_jacobian_product`
 - Artifact: `wingspectrum-container-comparison-32576243257`
 - Successful run: [32576243257](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32576243257)
+- SHA-pinned final audit: [32727604858](https://github.com/lsh2546/tesstrace-tesseract-hackathon-2026/actions/runs/32727604858)
+- Public judge UI: [GitHub Pages](https://lsh2546.github.io/tesstrace-tesseract-hackathon-2026/)
